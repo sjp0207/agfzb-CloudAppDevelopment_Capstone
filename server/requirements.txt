@@ -1,5 +1,5 @@
 requests
 Django
 gunicorn==20.1.0
-wheel==0.37.1
 Pillow==8.0.1
+wheel==0.37.1
