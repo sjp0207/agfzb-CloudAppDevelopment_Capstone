@@ -27,7 +27,7 @@ DEBUG = True
 
 APPEND_SLASH = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["sjp7.us-south.cf.appdomain.cloud"]
 
 
 # Application definition

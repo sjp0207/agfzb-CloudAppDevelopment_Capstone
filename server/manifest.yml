@@ -1,11 +1,11 @@
   applications:
-  - name: djangoapp-sjp
+  - name: djangoapp
     routes:
       - route: sjp7.us-south.cf.appdomain.cloud
     memory: 128M
-    buildpack: python_buildpack
-  - name: djangoapp-nginx-sjp
+    buildpacks: python_buildpack
+  - name: djangoapp-nginx
     routes:
       - route: sjp7.us-south.cf.appdomain.cloud/static
     memory: 128M
-    buildpack: staticfile_buildpack
+    buildpacks: staticfile_buildpack
