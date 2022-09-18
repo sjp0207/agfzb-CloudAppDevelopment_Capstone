@@ -83,10 +83,12 @@ def get_dealerships(request):
         url = "https://us-south.functions.appdomain.cloud/api/v1/web/sjp7work%40gmail.com_dev/dealership-package/get-dealership"
         # Get dealers from the URL
         dealerships = get_dealers_from_cf(url)
+        # print(dealerships)
         # Concat all dealer's short name
-        dealer_names = ' '.join([dealer.short_name for dealer in dealerships])
+        # dealer_names = ' '.join([dealer.short_name for dealer in dealerships])
         # Return a list of dealer short name
-        return HttpResponse(dealer_names)
+        # return HttpResponse(dealer_names)
+        context["dealership_list"] = dealerships
     return render(request, 'djangoapp/index.html', context)
 
 
@@ -97,11 +99,12 @@ def get_dealer_details(request, dealer_id):
         url = "https://us-south.functions.appdomain.cloud/api/v1/web/sjp7work%40gmail.com_dev/dealership-package/get-reviews"
         # Get dealers from the URL
         dealer_reviews = get_dealer_reviews_from_cf(url, dealer_id)
-        # Concat all dealer's short name
-        reviews = ' '.join([review.sentiment for review in dealer_reviews])
+        # # Concat all dealer's short name
+        # reviews = ' '.join([review.sentiment for review in dealer_reviews])
         # Return a list of dealer short name
-        return HttpResponse(reviews)
-    return render(request, 'djangoapp:dealer', context)
+        # return HttpResponse(reviews)
+        context["reviews"] = dealer_reviews
+    return render(request, 'djangoapp/dealer_details.html', context)
 
 
 # Create a `add_review` view to submit a review
@@ -112,11 +115,11 @@ def add_review(request, dealer_id):
     dealer_url = "https://us-south.functions.appdomain.cloud/api/v1/web/sjp7work%40gmail.com_dev/dealership-package/get-reviews"
     dealer = get_dealer_by_id_from_cf(dealer_url, id = dealer_id)
     context["dealer"] = dealer
+    context["dealer_id"] = dealer_id
     if request.method == 'GET':
         cars = CarModel.objects.filter(dealer_id)
         print(cars)
         context["cars"] = cars
-        
         return render(request, 'djangoapp/add_review.html', context)
     elif request.method == 'POST':
         if request.user.is_authenticated:
@@ -141,4 +144,4 @@ def add_review(request, dealer_id):
     post_request("https://us-south.functions.appdomain.cloud/api/v1/web/sjp7work%40gmail.com_dev/dealership-package/post-review",
                 json_payload,
                 dealer_id=dealer_id)
-    return render(request, 'djangoapp:dealer', context)    
+    redirect("djangoapp:dealer_details", dealer_id=dealer_id) 
