@@ -10,6 +10,7 @@ from datetime import datetime
 import logging
 import json
 from djangoapp.restapis import *
+from djangoapp.models import CarModel, CarMake, CarDealer, DealerReview
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -104,6 +105,7 @@ def get_dealer_details(request, dealer_id):
         # Return a list of dealer short name
         # return HttpResponse(reviews)
         context["reviews"] = dealer_reviews
+        context["dealer_id"] = dealer_id
     return render(request, 'djangoapp/dealer_details.html', context)
 
 
@@ -112,36 +114,37 @@ def add_review(request, dealer_id):
     context = {}
     json_payload = {}
     review = {}
-    dealer_url = "https://us-south.functions.appdomain.cloud/api/v1/web/sjp7work%40gmail.com_dev/dealership-package/get-reviews"
+    dealer_url = "https://us-south.functions.appdomain.cloud/api/v1/web/sjp7work%40gmail.com_dev/dealership-package/get-dealership"
     dealer = get_dealer_by_id_from_cf(dealer_url, id = dealer_id)
     context["dealer"] = dealer
     context["dealer_id"] = dealer_id
     if request.method == 'GET':
-        cars = CarModel.objects.filter(dealer_id)
+        cars = CarModel.objects.all()
         print(cars)
         context["cars"] = cars
         return render(request, 'djangoapp/add_review.html', context)
     elif request.method == 'POST':
         if request.user.is_authenticated:
+            print(request.POST)
             username = request.user.username
             print(request.POST)
-            car_id = request.POST["car"]
-            car = CarModel.objects.get(pk=car_id)
+            car_name = request.POST["car"]
+            car = CarModel.objects.get(name=car_name)
             review["time"] = datetime.utcnow().isoformat()
             review["name"] = username
             review["dealership"] = dealer_id
-            review["id"] = id
+            review["id"] = car.id + '__' + datetime.utcnow().isoformat()
             review["review"] = request.POST["content"]
             review["purchase"] = False
             if "purchasecheck" in request.POST:
                 review["purchase"] = True
-                review["purchase_date"] = datetime.strptime(request.POST["purchasedate"], "%m/%d/%Y").isoformat()
+                print(request.POST.get("purchasedate"))
+                review["purchase_date"] = datetime.strptime(request.POST.get("purchasedate"), "%m/%d/%Y").isoformat()
                 review["car_make"] = car.make.name
                 review["car_model"] = car.name
-                review["car_year"] = car.year
+                review["car_year"] = int(car.year.strftime("%Y"))
 
-    json_payload["review"] = review
-    post_request("https://us-south.functions.appdomain.cloud/api/v1/web/sjp7work%40gmail.com_dev/dealership-package/post-review",
-                json_payload,
-                dealer_id=dealer_id)
-    redirect("djangoapp:dealer_details", dealer_id=dealer_id) 
+            json_payload["review"] = review
+            json.dumps(json_payload)
+            post_request("https://us-south.functions.appdomain.cloud/api/v1/web/sjp7work%40gmail.com_dev/dealership-package/post-review",json_payload)
+        return redirect("djangoapp:dealer_details", dealer_id=dealer_id) 
